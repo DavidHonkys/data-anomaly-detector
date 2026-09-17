@@ -1,0 +1,27 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: producer-service
+  threads:
+    virtual:
+      enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+app:
+  producer:
+    exchange-name: ${APP_PRODUCER_EXCHANGE_NAME:metrics.exchange}
+    routing-key: ${APP_PRODUCER_ROUTING_KEY:metrics.datapoints}
+    queue-name: ${APP_PRODUCER_QUEUE_NAME:metrics.datapoints.queue}
+    publish-interval-ms: ${APP_PRODUCER_PUBLISH_INTERVAL_MS:200}
+    distribution:
+      mean: ${APP_PRODUCER_DISTRIBUTION_MEAN:50.0}
+      std-dev: ${APP_PRODUCER_DISTRIBUTION_STD_DEV:5.0}
+    anomaly:
+      rate: ${APP_PRODUCER_ANOMALY_RATE:0.05}
+      deviation-factor: ${APP_PRODUCER_ANOMALY_DEVIATION_FACTOR:6.0}

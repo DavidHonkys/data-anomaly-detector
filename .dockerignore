@@ -1,0 +1,6 @@
+# .dockerignore
+target/
+!target/*.jar
+**/.idea
+.git
+.DS_Store

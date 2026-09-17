@@ -1,0 +1,27 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: consumer-service
+  threads:
+    virtual:
+      enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        concurrency: 1
+        max-concurrency: 5
+        prefetch: 10
+        acknowledge-mode: auto
+
+app:
+  consumer:
+    queue-name: ${APP_CONSUMER_QUEUE_NAME:metrics.datapoints.queue}
+    window-size: ${APP_CONSUMER_WINDOW_SIZE:100}
+    threshold-std-dev: ${APP_CONSUMER_THRESHOLD_STD_DEV:3.0}
+    min-sample-size: ${APP_CONSUMER_MIN_SAMPLE_SIZE:50}

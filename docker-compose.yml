@@ -1,0 +1,66 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: anomaly-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - anomaly-network
+
+  producer:
+    build:
+      context: .
+      dockerfile: producer/Dockerfile
+    container_name: anomaly-producer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      # Tunable configuration
+      APP_PRODUCER_PUBLISH_INTERVAL_MS: 200
+      APP_PRODUCER_DISTRIBUTION_MEAN: 50.0
+      APP_PRODUCER_DISTRIBUTION_STD_DEV: 5.0
+      APP_PRODUCER_ANOMALY_RATE: 0.05
+      APP_PRODUCER_ANOMALY_DEVIATION_FACTOR: 6.0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - anomaly-network
+    restart: on-failure
+
+  consumer:
+    build:
+      context: .
+      dockerfile: consumer/Dockerfile
+    container_name: anomaly-consumer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      # Tunable configuration
+      APP_CONSUMER_WINDOW_SIZE: 100
+      APP_CONSUMER_THRESHOLD_STD_DEV: 3.0
+      APP_CONSUMER_MIN_SAMPLE_SIZE: 50
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - anomaly-network
+    restart: on-failure
+
+networks:
+  anomaly-network:
+    driver: bridge
